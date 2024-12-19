@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Group and Channel App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .search-bar {
+      margin: 1rem 0;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .search-bar input {
+      flex-grow: 1;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-width: 250px;
+      font-size: 0.9rem;
+    }
+    .search-bar button {
+      padding: 0.5rem 1rem;
+      background-color: orange;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .form-container {
+      padding: 1rem;
+      background: white;
+      margin: 1rem auto;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    .form-container h2 {
+      margin-bottom: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .form-group textarea {
+      resize: none;
+    }
+    button {
+      background-color: orange;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #e69500;
+    }
+    .carousel-container {
+      padding: 1rem;
+    }
+    .carousel {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      max-height: 320px;
+    }
+    .carousel-item {
+      flex: 0 0 auto;
+      width: 200px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      padding: 0.5rem;
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+    .carousel-item:hover {
+      transform: scale(1.1);
+    }
+    .carousel-item img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .carousel-item h3, .carousel-item p {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .carousel-item p {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .carousel-item .category {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #333;
+      border: 2px solid #4CAF50;
+      padding: 2px 5px;
+      border-radius: 5px;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    .carousel-item .button-container {
+      margin-top: 10px;
+    }
+    .carousel-item button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 5px;
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      position: relative;
+      transition: background 0.3s;
+    }
+    .carousel-item button:hover {
+      background-color: #3e8e41;
+    }
+    .carousel-item button .arrow {
+      margin-left: 8px;
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-top: 2px solid white;
+      border-right: 2px solid white;
+      transform: rotate(45deg);
+    }
+    .rating {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 5px;
+    }
+    .rating span {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: black;
+    }
+    .rating span.selected {
+      color: gold;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #333;
+      color: white;
+      font-size: 0.8rem;
+    }
+    .loading-message {
+      text-align: center;
+      font-size: 1rem;
+      color: #555;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTw9sr1qZ7KHE-O6UV08MrfGP72TWiv1I",
+      authDomain: "mon-app-web-whatsapp.firebaseapp.com",
+      projectId: "mon-app-web-whatsapp",
+      storageBucket: "mon-app-web-whatsapp.appspot.com",
+      messagingSenderId: "844195062188",
+      appId: "1:844195062188:web:ee18a61d921d82b03ada09"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function addGroup(data) {
+      try {
+        await addDoc(collection(db, "groups"), data);
+        alert("Groupe ou chaîne ajouté avec succès!");
+        loadGroups();
+      } catch (error) {
+        console.error("Erreur lors de l'ajout :", error);
+      }
+    }
+
+    async function loadGroups(searchTerm = "") {
+      const groupsContainer = document.getElementById("groups-carousel");
+      const channelsContainer = document.getElementById("channels-carousel");
+
+      groupsContainer.innerHTML = '<div class="loading-message">Chargement...</div>';
+      channelsContainer.innerHTML = '<div class="loading-message">Chargement...</div>';
+
+      const querySnapshot = await getDocs(collection(db, "groups"));
+      const dataList = [];
+      querySnapshot.forEach((doc) => {
+        dataList.push({ id: doc.id, ...doc.data() });
+      });
+
+      dataList.reverse();
+
+      const filteredData = dataList.filter((data) =>
+        data.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      groupsContainer.innerHTML = "";
+      channelsContainer.innerHTML = "";
+
+      filteredData.forEach((data) => {
+        const item = document.createElement("div");
+        item.className = "carousel-item";
+        item.innerHTML = `
+          <img src="${data.image}" alt="${data.name}" />
+          <h3>${data.name}</h3>
+          <p>${data.description}</p>
+          <p class="category">${data.category}</p>
+          <div class="button-container">
+            <button onclick="window.open('${data.link}', '_blank')">
+              Voir
+              <span class="arrow"></span>
+            </button>
+          </div>
+          <div class="rating">
+            ${[...Array(5)].map(() => '<span>★</span>').join('')}
+          </div>
+        `;
+        if (data.type === "Groupe") {
+          groupsContainer.appendChild(item);
+        } else if (data.type === "Chaîne") {
+          channelsContainer.appendChild(item);
+        }
+      });
+
+      document.querySelectorAll(".rating").forEach((ratingContainer) => {
+        const stars = ratingContainer.querySelectorAll("span");
+        stars.forEach((star, index) => {
+          star.addEventListener("click", () => {
+            stars.forEach((s, i) => {
+              s.classList.toggle("selected", i <= index);
+            });
+          });
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadGroups();
+
+      const form = document.getElementById("group-form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const fileInput = document.getElementById("image");
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          const data = {
+            name: formData.get("name"),
+            type: formData.get("type"),
+            category: formData.get("category"),
+            image: reader.result,
+            description: formData.get("description"),
+            link: formData.get("link")
+          };
+          addGroup(data);
+        };
+
+        if (fileInput.files[0]) {
+          reader.readAsDataURL(fileInput.files[0]);
+        } else {
+          alert("Veuillez sélectionner une image.");
+        }
+      });
+
+      const searchForm = document.getElementById("search-form");
+      searchForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const searchTerm = document.getElementById("search-input").value;
+        loadGroups(searchTerm);
+      });
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>WhatsApp Group and Channel App</h1>
+  </header>
+  <div class="form-container">
+    <h2>Ajouter un Groupe ou une Chaîne</h2>
+    <form id="group-form">
+      <div id="step-1">
+        <div class="form-group">
+          <label for="name">Nom</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" name="type" required>
+            <option value="Groupe">Groupe</option>
+            <option value="Chaîne">Chaîne</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="category">Catégorie</label>
+          <select id="category" name="category" required>
+            <option value="Sport ⚽">Sport ⚽</option>
+            <option value="Anime ⛩️">Anime ⛩️</option>
+            <option value="Manga 🐉">Manga 🐉</option>
+            <option value="Cuisine 👨‍🍳👩‍🍳">Cuisine 👨‍🍳👩‍🍳</option>
+            <option value="Gaming 🎮">Gaming 🎮</option>
+            <option value="Rencontre amitié 👫">Rencontre amitié 👫</option>
+            <option value="GROUPE RP ⚡">GROUPE RP ⚡</option>
+            <option value="Rencontre sérieuse ♥️">Rencontre sérieuse ♥️</option>
+            <option value="Parie sportif 🤑💸">Parie sportif 🤑💸</option>
+            <option value="Smash or pass 🎯">Smash or pass 🎯</option>
+            <option value="Pour ados">Pour ados</option>
+            <option value="Vente en ligne 🛒🛍️">Vente en ligne 🛒🛍️</option>
+            <option value="Pour enfants">Pour enfants</option>
+            <option value="Musique 🎵">Musique 🎵</option>
+            <option value="Art 🎨">Art 🎨</option>
+            <option value="Action ou vérité 🚨">Action ou vérité 🚨</option>
+            <option value="Service de livraison 🚚">Service de livraison 🚚</option>
+            <option value="Travail 💼">Travail 💼</option>
+            <option value="École">École</option>
+            <option value="Trading 🏧🥳💰💴">Trading 🏧🥳💰💴</option>
+            <option value="Recrutement">Recrutement</option>
+            <option value="Formation en ligne 👨‍💻">Formation en ligne 👨‍💻</option>
+            <option value="Science 👨‍🔬">Science 👨‍🔬</option>
+            <option value="Informatique 🌐">Informatique 🌐</option>
+            <option value="Technologie 🤖">Technologie 🤖</option>
+            <option value="Concepteurs 🏗️🧱">Concepteurs 🏗️🧱</option>
+            <option value="Divertissement ✨">Divertissement ✨</option>
+            <option value="FUN et blague 😂">FUN et blague 😂</option>
+            <option value="Détente">Détente</option>
+            <option value="Religion ⛪🕌">Religion ⛪🕌</option>
+          </select>
+        </div>
+        <button type="button" id="next-step">Suivant</button>
+      </div>
+      <div id="step-2" style="display: none;">
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="link">Lien WhatsApp</label>
+          <input type="url" id="link" name="link" required>
+        </div>
+        <div class="form-group">
+          <label for="image">Image</label>
+          <input type="file" id="image" name="image" accept="image/*" required>
+        </div>
+        <button type="button" id="prev-step" style="background-color: red;">← Précédent</button>
+        <button type="submit">Ajouter</button>
+      </div>
+    </form>
+  </div>
+  <div class="search-bar">
+    <form id="search-form">
+      <input type="text" id="search-input" placeholder="Rechercher un groupe ou une chaîne">
+      <button type="submit">Rechercher</button>
+    </form>
+  </div>
+  <div class="carousel-container">
+    <h2>Les Groupes</h2>
+    <div id="groups-carousel" class="carousel"></div>
+  </div>
+  <div class="carousel-container">
+    <h2>Les Chaînes</h2>
+    <div id="channels-carousel" class="carousel"></div>
+  </div>
+  <footer>
+    <p>© Développé par BLACK EYES</p>
+  </footer>
+  <script>
+    const nextStep = document.getElementById("next-step");
+    const prevStep = document.getElementById("prev-step");
+    const step1 = document.getElementById("step-1");
+    const step2 = document.getElementById("step-2");
+
+    nextStep.addEventListener("click", () => {
+      step1.style.display = "none";
+      step2.style.display = "block";
+    });
+
+    prevStep.addEventListener("click", () => {
+      step2.style.display = "none";
+      step1.style.display = "block";
+    });
+  </script>
+</body>
+</html>
